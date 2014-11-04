@@ -183,12 +183,13 @@ namespace Namecheap\Command
 			$this->_preConnect();
 
 			$ch = curl_init();
+
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_URL, $this->_config->url);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $this->getEncodedParams());
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_URL, $this->_url);
+            //curl_setopt($ch, CURLOPT_POST, 1);
+            //curl_setopt($ch, CURLOPT_POSTFIELDS, $this->getEncodedParams());
 			$this->_result = curl_exec($ch);
-			curl_close($ch);
 
 			// Perform any post-connect code if the extending command class has defined it
 			$this->_postConnect();
@@ -196,7 +197,8 @@ namespace Namecheap\Command
 			if (false === $this->_result)
 			{
 				$this->errorMessage = 'Communication error with Namecheap.';
-                throw new Exception((string) $this->_xml->Errors->Error);
+                throw new Exception(curl_error($ch), curl_errno($ch));
+                //throw new Exception($this->errorMessage);
 				return false;
 			}
 
@@ -216,6 +218,8 @@ namespace Namecheap\Command
 			}
 
 			$this->_postDispatch();
+
+			curl_close($ch);
 
 			return true;
 		}
